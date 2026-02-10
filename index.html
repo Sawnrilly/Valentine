@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Valentine</title>
+    <style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #ffeef2;
+        margin: 0;
+        font-family: 'Arial', sans-serif;
+        overflow: hidden;
+        flex-direction: column;
+    }
+
+    /* --- Envelope & Puzzle Styles (Unchanged) --- */
+    .envelope-wrapper { cursor: pointer; transition: transform 0.3s; }
+    .envelope-wrapper:hover { transform: scale(1.05); }
+    .envelope { position: relative; width: 200px; height: 150px; background-color: #f08080; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+    .envelope::before { content: ''; position: absolute; top: 0; width: 0; height: 0; border-left: 100px solid transparent; border-right: 100px solid transparent; border-top: 80px solid #f08080; transform-origin: top; transition: transform 0.5s; z-index: 2; }
+    .envelope-wrapper.open .envelope::before { transform: rotateX(180deg); z-index: 0; }
+    .heart { position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; background-color: #d9534f; transform: translate(-50%, -50%) rotate(-45deg); z-index: 3; }
+    .heart::before, .heart::after { content: ''; position: absolute; width: 40px; height: 40px; background-color: #d9534f; border-radius: 50%; }
+    .heart::before { top: -20px; left: 0; }
+    .heart::after { top: 0; left: 20px; }
+    #puzzle-container { display: none; grid-template-columns: repeat(3, 100px); grid-template-rows: repeat(3, 100px); gap: 2px; background-color: #fff; padding: 5px; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+    .puzzle-piece { width: 100px; height: 100px; background-image: url('pic.jpg'); background-size: 300px 300px; cursor: pointer; border-radius: 5px; }
+    .puzzle-piece.empty { background-image: none; background-color: #ffeef2; cursor: default; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); }
+    #final-message { display: none; text-align: center; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+    /* --- ANIMATION SCENE STYLES (UPDATED) --- */
+    #scene-container {
+        display: none;
+        text-align: center;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .scene-text {
+        font-size: 24px;
+        color: #d9534f;
+        margin-bottom: 20px;
+        opacity: 0;
+        animation: fadeIn 1s forwards;
+    }
+
+    .image-container {
+        position: relative;
+        width: 1000px; /* Wider to accommodate large images */
+        height: 300px; /* Taller */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 50px;
+    }
+
+    .anim-img {
+        width: 200px; /* --- YOUR DESIRED SIZE --- */
+        height: 200px;
+        position: absolute;
+        opacity: 0;
+        object-fit: contain;
+    }
+
+    #img1 { /* Middle Image */
+        left: 200px; /* (ContainerWidth/2) - (ImageWidth/2) */
+        animation: fadeIn 0.5s forwards 1s;
+    }
+
+    #img2 { /* Moving Image - Starts offscreen right */
+        right: -250px; 
+        animation: slideAndHump 4s forwards 1.5s;
+    }
+
+    #img3 { /* Third Image - Right of Middle */
+        left: 500px; /* Left of Img1 + ImgWidth + Gap */
+        opacity: 0;
+        animation: fadeIn 0.5s forwards 4s;
+    }
+    
+    #img4 { /* Fourth Image - Right of Third */
+        left: 700px; /* Left of Img3 + ImgWidth + Gap */
+        opacity: 0;
+        animation: fadeIn 0.5s forwards 5s;
+    }
+
+    #final-question {
+        margin-top: 50px;
+        font-size: 32px;
+        color: #d9534f;
+        opacity: 0;
+        animation: fadeIn 1s forwards 6s;
+    }
+
+    #yes-button {
+        padding: 15px 30px;
+        font-size: 20px;
+        background-color: #d9534f;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        opacity: 0;
+        animation: fadeIn 1s forwards 6s;
+        margin-top: 20px;
+    }
+
+    /* --- Animations (UPDATED) --- */
+    @keyframes fadeIn {
+        to { opacity: 1; }
+    }
+
+    @keyframes slideAndHump {
+    0% { right: -250px; opacity: 1; }
+    25% { right: 600px; opacity: 1; } /* Touches Img1 */
+    
+    /* Hump motion */
+    35% { right: 550px; }
+    45% { right: 570px; }
+    55% { right: 550px; }
+    65% { right: 570px; }
+    
+    /* Settles: Increased right value to create a gap */
+    75% { right: 500px; opacity: 1; } 
+    100% { right: 500px; opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+    <div class="envelope-wrapper" onclick="openEnvelope()">
+        <div class="envelope">
+            <div class="heart"></div>
+        </div>
+    </div>
+
+    <div id="puzzle-container"></div>
+
+    <div id="final-message">
+        <h2>Dear Tini, you fulfill me! ❤️</h2>
+        <button onclick="startAnimation()">Next</button>
+    </div>
+
+    <div id="scene-container">
+        <div class="scene-text">So now, let me fulfill you instead</div>
+        <div class="image-container">
+            <img src="img1.png" id="img1" class="anim-img" alt="Middle">
+            <img src="img2.png" id="img2" class="anim-img" alt="Moving">
+            <img src="img3.png" id="img3" class="anim-img" alt="Third">
+            <img src="img4.png" id="img4" class="anim-img" alt="Fourth">
+        </div>
+        <div id="final-question">Will you be my valentine? (pretty please)</div>
+        <button id="yes-button" onclick="alert('Yay! AR INANEB MY LOVE!')">Yes! ❤️</button>
+    </div>
+
+    <script>
+        function openEnvelope() {
+            document.querySelector('.envelope-wrapper').style.display = 'none';
+            document.getElementById('puzzle-container').style.display = 'grid';
+            initializePuzzle();
+        }
+
+        // --- Puzzle Logic (Unchanged) ---
+        const container = document.getElementById('puzzle-container');
+        let pieces = [0, 1, 2, 3, 4, 5, 6, 7, 8]; 
+        
+        function shuffle(array) {
+            let emptyIndex = array.indexOf(8);
+            let moves = 0;
+            while (moves < 8) {
+                const possibleMoves = [];
+                if (emptyIndex > 2) possibleMoves.push(emptyIndex - 3);
+                if (emptyIndex < 6) possibleMoves.push(emptyIndex + 3);
+                if (emptyIndex % 3 !== 0) possibleMoves.push(emptyIndex - 1);
+                if (emptyIndex % 3 !== 2) possibleMoves.push(emptyIndex + 1);
+                const nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                [array[emptyIndex], array[nextMove]] = [array[nextMove], array[emptyIndex]];
+                emptyIndex = nextMove;
+                moves++;
+            }
+        }
+
+        function renderPuzzle() {
+            container.innerHTML = '';
+            pieces.forEach((pieceId, index) => {
+                const div = document.createElement('div');
+                div.className = 'puzzle-piece';
+                if (pieceId === 8) {
+                    div.classList.add('empty');
+                } else {
+                    const row = Math.floor(pieceId / 3);
+                    const col = pieceId % 3;
+                    div.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+                    div.onclick = () => movePiece(index);
+                }
+                container.appendChild(div);
+            });
+        }
+
+        function movePiece(index) {
+            const emptyIndex = pieces.indexOf(8);
+            const validMoves = [index - 1, index + 1, index - 3, index + 3];
+            if (validMoves.includes(emptyIndex) && !(index % 3 === 0 && emptyIndex === index - 1) && !(index % 3 === 2 && emptyIndex === index + 1)) {
+                [pieces[index], pieces[emptyIndex]] = [pieces[emptyIndex], pieces[index]];
+                renderPuzzle();
+                checkWin();
+            }
+        }
+
+        function checkWin() {
+            if (pieces.every((pieceId, i) => pieceId === i)) {
+                setTimeout(() => {
+                    container.style.display = 'none';
+                    document.getElementById('final-message').style.display = 'block';
+                }, 500);
+            }
+        }
+
+        function initializePuzzle() {
+            shuffle(pieces);
+            renderPuzzle();
+        }
+
+        // --- NEW ANIMATION TRIGGER ---
+        function startAnimation() {
+            document.getElementById('final-message').style.display = 'none';
+            document.getElementById('scene-container').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
